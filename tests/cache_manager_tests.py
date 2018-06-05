@@ -29,8 +29,8 @@ class CacheManagerTests(TestCase):
         self.assertTrue(isinstance(self.cache_manager.get_query_set(), CachingQuerySet))
 
     def test_get_queryset(self):
-        self.assertTrue(isinstance(self.cache_manager.get_queryset(), CachingQuerySet))        
-        
+        self.assertTrue(isinstance(self.cache_manager.get_queryset(), CachingQuerySet))
+
 
 @patch.object(CachingQuerySet, 'invalidate_model_cache')
 @patch.object(CachingQuerySet, 'cache_backend')
@@ -38,7 +38,7 @@ class CacheManagerTests(TestCase):
 class CachingQuerySetTests(TestCase):
     """
     Tests for django_cache_manager.cache_manager.CachingQuerySet
-    """    
+    """
 
     def setUp(self):
         self.cache_manager = CacheManager()
@@ -82,6 +82,16 @@ class CachingQuerySetTests(TestCase):
         """
         self.query_set.update(name='name')
         self.assertEquals(invalidate_model_cache.call_count, 1)
+
+    def test_first(self, mock_generate_key, mock_cache_backend, invalidate_model_cache):
+        """
+        A cache hit will not result in call to the database.
+        """
+        mock_generate_key.return_value = 'key'
+        mock_cache_backend.get.return_value = ['result_1', 'result_2']
+        result = self.query_set.first()
+        self.assertEquals(result, 'result_1')
+        self.assertEquals(mock_cache_backend.set.call_count, 0)
 
     def test_catch_empty_result_set(self, mock_generate_key, mock_cache_backend, invalidate_model_cache):
         """

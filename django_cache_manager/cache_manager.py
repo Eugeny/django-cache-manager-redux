@@ -54,6 +54,10 @@ class CachingQuerySet(CacheBackendMixin, CacheKeyMixin, CacheInvalidateMixin, Qu
         for result in result_set:
             yield result
 
+    def first(self):
+        for obj in self[0:1].iterator():
+            return obj
+
     def bulk_create(self, *args, **kwargs):
         self.invalidate_model_cache()
         return super(CachingQuerySet, self).bulk_create(*args, **kwargs)
